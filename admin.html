@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Админ-панель - Заказы</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6 font-sans">
+
+  <h1 class="text-2xl font-bold mb-6">Админ-панель — Заказы</h1>
+
+  <table class="min-w-full bg-white rounded shadow-md">
+    <thead>
+      <tr class="bg-indigo-600 text-white">
+        <th class="py-2 px-4">ID</th>
+        <th class="py-2 px-4">Дата заказа</th>
+        <th class="py-2 px-4">Вид уборки</th>
+        <th class="py-2 px-4">Адрес / Координаты</th>
+        <th class="py-2 px-4">Комнаты</th>
+        <th class="py-2 px-4">Площадь</th>
+        <th class="py-2 px-4">Пожелания</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in orders %}
+      <tr class="border-b hover:bg-gray-100">
+        <td class="py-2 px-4 text-center">{{ order.id }}</td>
+        <td class="py-2 px-4">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td class="py-2 px-4">{{ order.service }}</td>
+        <td class="py-2 px-4">
+          {% if order.address %}
+            {{ order.address }}
+          {% else %}
+            Широта: {{ order.latitude }}, Долгота: {{ order.longitude }}
+          {% endif %}
+        </td>
+        <td class="py-2 px-4 text-center">{{ order.rooms }}</td>
+        <td class="py-2 px-4 text-center">{{ order.area }}</td>
+        <td class="py-2 px-4">{{ order.notes or '-' }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="7" class="text-center py-4 text-gray-500">Нет заказов</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</body>
+</html>

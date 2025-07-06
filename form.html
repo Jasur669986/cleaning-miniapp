@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{ 'Бронирование уборки' if lang == 'ru' else 'Tozalash buyurtmasi' }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body class="bg-gray-100 p-4 font-sans text-gray-900">
+
+  <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md space-y-4">
+    <h1 class="text-xl font-bold text-center">
+      {{ 'Бронирование уборки' if lang == 'ru' else 'Tozalash buyurtmasi' }}
+    </h1>
+
+    <form id="bookingForm" class="space-y-4">
+      <!-- Вид уборки -->
+      <div>
+        <label class="block font-semibold mb-1">
+          {{ 'Выберите вид уборки' if lang == 'ru' else 'Tozalash turini tanlang' }}
+        </label>
+        <select id="service" name="service" required class="w-full border rounded p-2">
+          <option value="" disabled selected>
+            {{ 'Выберите...' if lang == 'ru' else 'Tanlang...' }}
+          </option>
+          <option value="apartment">{{ 'Уборка квартиры' if lang == 'ru' else 'Kvartira tozalash' }}</option>
+          <option value="office">{{ 'Уборка офиса' if lang == 'ru' else 'Ofis tozalash' }}</option>
+          <option value="general">{{ 'Генеральная уборка' if lang == 'ru' else 'Asosiy tozalash' }}</option>
+          <option value="postconstruction">{{ 'Послестроительная уборка' if lang == 'ru' else 'Qurilishdan keyingi tozalash' }}</option>
+        </select>
+      </div>
+
+      <!-- Адрес и геопозиция -->
+      <div>
+        <label class="block font-semibold mb-1">{{ 'Адрес' if lang == 'ru' else 'Manzil' }}</label>
+        <input type="text" id="address" name="address" placeholder="{{ 'Введите адрес' if lang == 'ru' else 'Manzilni kiriting' }}" class="w-full border rounded p-2" />
+
+        <button type="button" id="getLocationBtn" class="mt-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">
+          {{ 'Отправить мою локацию' if lang == 'ru' else 'Mening joylashuvimni yuborish' }}
+        </button>
+
+        <p id="locationDisplay" class="mt-1 text-sm text-gray-600"></p>
+      </div>
+
+      <!-- Дата -->
+      <div>
+        <label class="block font-semibold mb-1">{{ 'Дата уборки' if lang == 'ru' else 'Tozalash sanasi' }}</label>
+        <input type="date" id="date" name="date" required class="w-full border rounded p-2" />
+      </div>
+
+      <!-- Время -->
+      <div>
+        <label class="block font-semibold mb-1">{{ 'Время уборки' if lang == 'ru' else 'Tozalash vaqti' }}</label>
+        <input type="time" id="time" name="time" required class="w-full border rounded p-2" />
+      </div>
+
+      <!-- Кол-во комнат -->
+      <div>
+        <label class="block font-semibold mb-1">{{ 'Количество комнат' if lang == 'ru' else 'Xonalar soni' }}</label>
+        <input type="number" id="rooms" name="rooms" min="1" required placeholder="{{ 'Введите число' if lang == 'ru' else 'Raqam kiriting' }}" class="w-full border rounded p-2" />
+      </div>
+
+      <!-- Площадь -->
+      <div>
+        <label class="block font-semibold mb-1">{{ 'Площадь (м²)' if lang == 'ru' else 'Maydon (m²)' }}</label>
+        <input type="number" id="area" name="area" min="1" required placeholder="{{ 'Введите площадь' if lang == 'ru' else 'Maydonni kiriting' }}" class="w-full border rounded p-2" />
+      </div>
+
+      <!-- Дополнительные пожелания -->
+      <div>
+        <label class="block font-semibold mb-1">
+          {{ 'Ваши пожелания' if lang == 'ru' else 'Sizning istaklaringiz' }}
+        </label>
+        <textarea id="notes" name="notes" rows="4" placeholder="{{ 'Напишите ваши пожелания (необязательно)' if lang == 'ru' else 'Istaklaringizni yozing (majburiy emas)' }}" class="w-full border rounded p-2"></textarea>
+      </div>
+
+      <!-- Цена (статичная) -->
+      <div>
+        <p class="font-semibold">
+          {{ 'Цена: от 100 000 сум' if lang == 'ru' else 'Narxi: 100 000 so\'mdan' }}
+        </p>
+      </div>
+
+      <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700">
+        {{ 'Подтвердить заказ' if lang == 'ru' else 'Buyurtmani tasdiqlash' }}
+      </button>
+    </form>
+
+    <div id="message" class="mt-4 text-center font-semibold text-red-600"></div>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    const form = document.getElementById('bookingForm');
+    const messageEl = document.getElementById('message');
+    const getLocationBtn = document.getElementById('getLocationBtn');
+    const locationDisplay = document.getElementById('locationDisplay');
+    const addressInput = document.getElementById('address');
+
+    let locationCoords = null;
+
+    getLocationBtn.addEventListener('click', () => {
+      tg.getLocation().then(location => {
+        if (location) {
+          locationCoords = location; // { latitude, longitude }
+          locationDisplay.textContent = `Широта: ${location.latitude.toFixed(5)}, Долгота: ${location.longitude.toFixed(5)}`;
+          addressInput.value = '';
+        } else {
+          locationDisplay.textContent = '{{ "Не удалось получить локацию" if lang == "ru" else "Joylashuvni olish muvaffaqiyatsiz tugadi" }}';
+        }
+      }).catch(() => {
+        locationDisplay.textContent = '{{ "Ошибка доступа к локации" if lang == "ru" else "Joylashuvga kirishda xatolik" }}';
+      });
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const data = {
+        service: form.service.value,
+        address: addressInput.value.trim(),
+        date: form.date.value,
+        time: form.time.value,
+        rooms: form.rooms.value,
+        area: form.area.value,
+        user_id: tg.initDataUnsafe?.user?.id || null,
+        notes: form.notes.value.trim()
+      };
+
+      if (locationCoords) {
+        data.location = locationCoords;
+        data.address = null;
+      }
+
+      if (!data.service || (!data.address && !data.location) || !data.date || !data.time || !data.rooms || !data.area) {
+        messageEl.textContent = '{{ "Пожалуйста, заполните все поля" if lang == "ru" else "Iltimos, barcha maydonlarni to‘ldiring" }}';
+        return;
+      }
+
+      try {
+        const res = await fetch('/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const json = await res.json();
+
+        if (json.status === 'success') {
+          window.location.href = `/timer?lang={{ lang }}&date=${encodeURIComponent(data.date)}&time=${encodeURIComponent(data.time)}`;
+        } else {
+          messageEl.textContent = json.message || '{{ "Ошибка при отправке" if lang == "ru" else "Yuborishda xatolik yuz berdi" }}';
+        }
+      } catch (err) {
+        messageEl.textContent = '{{ "Ошибка сети" if lang == "ru" else "Tarmoq xatosi" }}';
+      }
+    });
+  </script>
+
+</body>
+</html>

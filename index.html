@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="UTF-8" />
+  <title>Клининг-сервис</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 p-4 font-sans">
+
+  <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md text-center">
+    <h1 class="text-2xl font-bold mb-4">
+      {{ 'Выберите язык' if lang == 'ru' else 'Tilni tanlang' }}
+    </h1>
+
+    <div class="flex justify-center gap-4 mb-6">
+      <a href="/?lang=ru" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Русский</a>
+      <a href="/?lang=uz" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">O'zbek</a>
+    </div>
+
+    <div id="next-step" class="hidden">
+      <a href="/form?lang={{ lang }}" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700">
+        {{ 'Продолжить' if lang == 'ru' else 'Davom etish' }}
+      </a>
+    </div>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    document.getElementById('next-step').classList.remove('hidden');
+  </script>
+</body>
+</html>
