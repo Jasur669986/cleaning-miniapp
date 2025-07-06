@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{ 'Таймер до уборки' if lang == 'ru' else 'Tozalashgacha vaqt' }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body class="bg-gray-100 p-4 font-sans text-gray-900">
+
+  <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md text-center space-y-4">
+    <h1 class="text-xl font-bold">
+      {{ 'До начала уборки осталось' if lang == 'ru' else 'Tozalash boshlanishiga qoldi' }}
+    </h1>
+
+    <div id="countdown" class="text-4xl font-mono"></div>
+
+    <div id="message" class="text-lg text-red-600"></div>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    const targetDate = new Date("{{ datetime_iso }}");
+    const countdownEl = document.getElementById('countdown');
+    const messageEl = document.getElementById('message');
+
+    function updateCountdown() {
+      const now = new Date();
+      const diff = targetDate - now;
+
+      if (diff <= 0) {
+        countdownEl.textContent = '00:00:00';
+        messageEl.textContent = '{{ "Уборка началась!" if lang == "ru" else "Tozalash boshlandi!" }}';
+        clearInterval(timerInterval);
+        return;
+      }
+
+      const hours = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0');
+      const minutes = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+      const seconds = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
+
+      countdownEl.textContent = `${hours}:${minutes}:${seconds}`;
+    }
+
+    updateCountdown();
+    const timerInterval = setInterval(updateCountdown, 1000);
+  </script>
+</body>
+</html>
